@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 """ State Module for HBNB project """
+from models.base_model import BaseModel
 from models.base_model import BaseModel, Base
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy import Column, String
+from sqlalchemy import Table, Column, Integer, String
+from models.city import City
 from os import getenv
+import models
+from sqlalchemy.orm import relationship, backref
 
 
 class State(BaseModel, Base):
@@ -20,11 +23,18 @@ class State(BaseModel, Base):
         passive_deletes=True,
         single_parent=True)
 
-    if getenv("HBNB_TYPE_STORAGE") != "db":
+    if getenv('HBNB_TYPE_STORAGE') == "db":
+        cities = relationship(
+            'City',
+            cascade='all, delete-orphan',
+            backref='state',
+        )
+    else:
+
         @property
         def cities(self):
-            """returns list of City instances with state_id"""
-            from models import storage
-            from models import City
-            return [v for k, v in storage.all(City).items()
-                    if v.state_id == self.id]
+            allcities = []
+            for id, city in models.storage.all(City).items():
+                if self.id == city.state_id:
+                    allcities.append(city)
+            return allcities
