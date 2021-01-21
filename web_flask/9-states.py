@@ -1,9 +1,9 @@
 #!/usr/bin/python3
-"""Script that starts a Flask web application"""
+"""Start a Flask web application"""
 
 
-from flask import Flask, render_template
 from models import storage
+from flask import Flask, render_template
 from models.state import State
 
 
@@ -12,31 +12,24 @@ app = Flask(__name__)
 
 @app.teardown_appcontext
 def close_db(self):
-    """Close session"""
+    """Close session on DB"""
     storage.close()
 
 
 @app.route('/states', strict_slashes=False)
-def all_states():
-    """
-    List all states on storage
-    """
-    states = storage.all(State).values()
-    return render_template('9-states.html', states=states)
-
-
 @app.route('/states/<id>', strict_slashes=False)
-def search_state(id):
-    """
-    List a specific state given as parameter in URL
-    """
-    states = storage.all(State).values()
-    for data in states:
-        if (id == data.id):
-            return render_template("9-states.html", states=data)
-        else:
-            return render_template("9-states.html", states=None)
+def stateList(id=None):
+    """Luist a given state if are available"""
+    states = storage.all(State)
+    id_state = None
+    state = None
+    if id:
+        id_state = 'State.' + id
+        if id_state in states.keys():
+            state = states[id_state]
+    return render_template('9-states.html', id=id_state,
+                           state=state, states=states)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port="5000")
